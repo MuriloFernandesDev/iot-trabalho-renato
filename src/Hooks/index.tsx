@@ -1,15 +1,14 @@
+import { useState, useEffect, useRef } from 'react';
 import Hark from 'hark';
-import { useEffect, useRef, useState } from 'react';
 import { startRecording, stopRecording } from './recorderHelpers';
 
 // https://cloud.google.com/speech-to-text/docs/reference/rest/v1/RecognitionConfig
 import { GoogleCloudRecognitionConfig } from './GoogleCloudRecognitionConfig';
-import { SpeechRecognition } from './SpeechRecognition';
 
 // https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition
 export interface SpeechRecognitionProperties {
   // continuous: do not pass continuous here, instead pass it as a param to the hook
-  grammars?: any;
+  grammars?: SpeechGrammarList;
   interimResults?: boolean;
   lang?: string;
   maxAlternatives?: number;
@@ -25,7 +24,10 @@ interface BraveNavigator extends Navigator {
 
 const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
 
-let recognition: any | null;
+const SpeechRecognition =
+  window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+let recognition: SpeechRecognition | null;
 
 export type ResultType = {
   speechBlob?: Blob;
@@ -132,7 +134,7 @@ export default function useSpeechToText({
       recognition.start();
 
       // speech successfully translated into text
-      recognition.onresult = (e: any) => {
+      recognition.onresult = (e) => {
         const result = e.results[e.results.length - 1];
         const { transcript } = result[0];
 
